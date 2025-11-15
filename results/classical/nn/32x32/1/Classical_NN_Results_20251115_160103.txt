@@ -1,0 +1,25 @@
+Model Path: results/classical/nn/1
+Dataset: .\dataset\cats_dogs_32x32.npz
+Accuracy: 62.33%
+Classification Report:
+              precision    recall  f1-score   support
+
+         cat       0.65      0.55      0.59       150
+         dog       0.61      0.70      0.65       150
+
+    accuracy                           0.62       300
+   macro avg       0.63      0.62      0.62       300
+weighted avg       0.63      0.62      0.62       300
+
+Confusion Matrix:
+[[ 82  68]
+ [ 45 105]]
+
+Additional Information:
+Timestamp: 20251115_160103
+training_duration: 0:00:47.029618
+epochs: 100
+batch_size: 32
+learning_rate: 0.01
+seed: 43
+model_info: {'model_type': 'ClassicalNN', 'input_size': 3072, 'hidden_dims': [516, 256], 'num_classes': 2, 'dropout': 0.1, 'total_parameters': 1718534, 'trainable_parameters': 1718534, 'architecture': 'ClassicalNN(\n  (flatten): Flatten(start_dim=1, end_dim=-1)\n  (classifier): Sequential(\n    (0): Linear(in_features=3072, out_features=516, bias=True)\n    (1): ReLU()\n    (2): Dropout(p=0.1, inplace=False)\n    (3): Linear(in_features=516, out_features=256, bias=True)\n    (4): ReLU()\n    (5): Dropout(p=0.1, inplace=False)\n    (6): Linear(in_features=256, out_features=2, bias=True)\n  )\n)'}
