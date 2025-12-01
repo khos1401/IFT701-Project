@@ -25,37 +25,18 @@ class NPZDataLoader:
 
     def __init__(self, npz_path: str):
         npz_path = Path(npz_path)
-        if not npz_path.exists():
-            raise FileNotFoundError(f"Dataset not found: {npz_path}")
 
         self.data = np.load(npz_path, allow_pickle=True)
         self.X = self.data["X"]
         self.y = self.data["y"]
-        self.classes = (
-            self.data["classes"].tolist()
-            if "classes" in self.data
-            else list(range(len(np.unique(self.y))))
-        )
+        self.classes = self.data["classes"].tolist()
+
         print(f"Loaded {npz_path.name}")
         print(f"X: {self.X.shape}, dtype={self.X.dtype}")
         print(f"y: {self.y.shape}, classes: {self.classes}")
 
-    def normalize(self, method: str = "0-1") -> None:
-        """
-        Normalize images.
-        - "0-1": scale to [0, 1] float32
-        - "standardize": mean 0, std 1
-        """
-        if method == "0-1":
-            self.X = self.X.astype(np.float32) / 255.0
-        elif method == "standardize":
-            self.X = self.X.astype(np.float32)
-            mean = np.mean(self.X, axis=(0, 1, 2), keepdims=True)
-            std = np.std(self.X, axis=(0, 1, 2), keepdims=True) + 1e-8
-            self.X = (self.X - mean) / std
-        else:
-            raise ValueError("method must be '0-1' or 'standardize'")
-        print(f"Normalized dataset using '{method}' method.")
+    def normalize(self) -> None:
+        self.X = self.X.astype(np.float32) / 255.0
 
     def split(
         self,
