@@ -1,30 +1,6 @@
 from torch import nn
 import torch
 
-class ClassicalCNN(nn.Module):
-    def __init__(self,
-                 input_size: int,
-                 num_classes: int = 2,
-                 hidden_dims = None,
-                 dropout: float = 0.1):
-        super(ClassicalCNN, self).__init__()
-        self.flatten = nn.Flatten()
-        self.conv1 = nn.Conv2d(3, 16, kernel_size=3, padding=1)
-        self.pool = nn.MaxPool2d(2, 2)
-        self.conv2 = nn.Conv2d(16, 32, kernel_size=3, padding=1)
-        self.fc1 = nn.Linear(32 * input_size // 4**2, 128)
-        self.fc2 = nn.Linear(128, 2)
-        self.relu = nn.ReLU()
-        self.dropout = nn.Dropout(0.1)
-
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
-        x = self.pool(self.relu(self.conv1(x)))
-        x = self.pool(self.relu(self.conv2(x)))
-        x = self.flatten(x)
-        x = self.relu(self.fc1(x))
-        x = self.dropout(x)
-        x = self.fc2(x)
-        return x
 
 class ClassicalCNN(nn.Module):
     """
@@ -96,8 +72,6 @@ class ClassicalCNN(nn.Module):
             'trainable_parameters': sum(p.numel() for p in self.parameters() if p.requires_grad),
             'architecture': str(self)
         }
-
-
 
 
 class ClassicalNN(nn.Module):
