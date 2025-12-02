@@ -6,7 +6,7 @@ import torch
 from torch import nn
 from torch.utils.data import TensorDataset, DataLoader
 
-from classical_models.utils import training_loop, testing_loop
+from utils import training_loop, testing_loop
 
 from torch.utils.data import DataLoader, TensorDataset
 from torch import nn, optim

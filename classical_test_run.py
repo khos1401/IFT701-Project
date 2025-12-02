@@ -10,7 +10,7 @@ import re
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../../../..')))
 
 from classical_models.nn.model import ClassicalNN
-from classical_models.utils import get_data_tensors, evaluate_model, save_results, save_training_history, plot_training_history, compute_multiclass_roc, plot_multiclass_roc
+from utils import get_data_tensors, evaluate_model, save_results, save_training_history, plot_training_history, compute_multiclass_roc, plot_multiclass_roc
 from classical_models.train_model_and_save import train_classical_model
 from classical_models.models import ClassicalNN, ClassicalCNN
 
