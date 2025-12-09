@@ -128,118 +128,159 @@ def ccry(theta: float, control1: cudaq.qubit, control2: cudaq.qubit, target: cud
     ry(-theta / 4.0, target)
     x.ctrl(control1, target)
 
+@cudaq.kernel
+def y_rot(q:cudaq.qubit, theta:float):
+    ry(2.0*theta, q)
+
+
 ###############################################################################################################################################
-# Feature Map Implementations
+# MCQRI Feature Map Implementation
 ###############################################################################################################################################
 
 # NOTE: helpers accept a cudaq.qview `q` allocated in the top-level kernel and
 # never allocate qubits themselves. Keep indices within [0, len(q)-1].
 
+
 @cudaq.kernel
-def ry_feature_map(q: cudaq.qview,
-                   n_class_qubits: int,
-                   n_map_qubits: int,
-                   input_data: List[float],
-                   ):
-    """Simple RY feature map encoding (acts on map qubits)."""
-    h(q)  # optional Hadamard layer before RY encoding
-    for i in range(n_map_qubits):
-        if i < len(input_data):
-            ry(input_data[i], q[n_class_qubits + i])
+def mcqi(q_pos: int, angles: list[float], index_q: list[int], num_x: list[int]):
+    pos = cudaq.qvector(q_pos)
+    color = cudaq.qvector(3)
+
+    h(pos)
+
+    num_pixels = int(len(angles) / 3)
+
+    j = 0
+    count = 0 
+
+    for pix in range(num_pixels):
+        theta_r = angles[3 * pix + 0]
+        theta_g = angles[3 * pix + 1]
+        theta_b = angles[3 * pix + 2]
+
+        if j == 0:
+            cudaq.control(y_rot, pos, color[0], theta_r)
+            cudaq.control(y_rot, pos, color[1], theta_g)
+            cudaq.control(y_rot, pos, color[2], theta_b)
+        else:
+            tot_x = num_x[j - 1]
+            for _ in range(tot_x):
+                x(pos[index_q[count]])
+                count += 1
+
+            cudaq.control(y_rot, pos, color[0], theta_r)
+            cudaq.control(y_rot, pos, color[1], theta_g)
+            cudaq.control(y_rot, pos, color[2], theta_b)
+
+        j += 1
+
+    mz(pos)
+    mz(color)
+
 
 
 ###############################################################################################################################################
 # Ansatz Implementations (NO qvector allocation here)
 ###############################################################################################################################################
 
+from typing import List
+import cudaq
+
 @cudaq.kernel
-def ring_ansatz(q: cudaq.qview,
-                n_class_qubits: int,
-                n_map_qubits: int,
-                attention_params: List[float],
-                processing_params: List[float],
-                num_layers: int = 2,
-                ):
-    """Basic ring-entangling ansatz operating on the provided qubits,
-    using explicit class/map start indices for stable positioning.
+def ansatz(
+    q: cudaq.qview,
+    n_class_qubits: int,
+    n_map_qubits: int,
+    attention_params: List[float],
+    processing_params: List[float],
+    num_layers: int = 2,
+):
+    """
+    Nearest-neighbor ansatz using RY and controlled gates.
     """
 
-    # Attention
+    total_qubits = n_class_qubits + n_map_qubits
+
     a = 0
-    for k in range(n_map_qubits):
-        idx = n_class_qubits + k
-        if a < len(attention_params):
-            ry(attention_params[a], q[idx]); a += 1
-        if a < len(attention_params):
-            rz(attention_params[a], q[idx]); a += 1
+    map_start = n_class_qubits
+    map_end   = n_class_qubits + n_map_qubits
 
-    for k in range(n_map_qubits):
-        idx = n_class_qubits + k
+    for k in range(map_start, map_end):
         if a < len(attention_params):
-            ry(attention_params[a], q[idx]); a += 1
+            ry(attention_params[a], q[k])
+            a += 1
 
-    # Entangling attention (2 options; A or B)
     if n_map_qubits >= 2:
-        # (A) ring entanglement
-        for k in range(n_map_qubits):
-            c = n_class_qubits + k
-            t = n_class_qubits + ((k + 1) % n_map_qubits)
+        for k in range(map_start, map_end - 1):
             if a < len(attention_params):
-                cry(attention_params[a], q[c], q[t]); a += 1
+                cry(attention_params[a], q[k], q[k + 1])
+                a += 1
 
-    # Processing Layers
     p = 0
-    L = num_layers
-    if L <= 0:
-        L = 1
+    L = num_layers if num_layers > 0 else 1
+
+    class_start = 0
+    class_end   = n_class_qubits
 
     for _ in range(L):
-        # RY on map qubits
-        for k in range(n_map_qubits):
-            idx = n_class_qubits + k
-            if p < len(processing_params):
-                ry(processing_params[p], q[idx]); p += 1
 
-        # CX from map k to class k, up to min counts
-        mcc = n_class_qubits
-        if n_map_qubits < mcc:
-            mcc = n_map_qubits
-        for c in range(mcc):
-            x.ctrl(q[n_class_qubits + c], q[c])
-
-        # Optional RZ on class qubits
-        for c in range(n_class_qubits):
+        for idx in range(total_qubits):
             if p < len(processing_params):
-                rz(processing_params[p], q[c]); p += 1
+                ry(processing_params[p], q[idx])
+                p += 1
+
+        if n_class_qubits >= 2:
+            for c in range(class_start, class_end - 1):
+                x.ctrl(q[c], q[c + 1])
+
+        if n_map_qubits >= 2:
+            for k in range(map_start, map_end - 1):
+                x.ctrl(q[k], q[k + 1])
 
 
 ###############################################################################################################################################
 # Final Circuit/Kernel Constructor (single allocation point)
 ###############################################################################################################################################
-
 @cudaq.kernel
-def kernel_constructor(n_qubits: int,
-                       n_class_qubits: int,
-                       n_map_qubits: int,
-                       FEATURE_MAP: int,
-                       ANSATZ: int,
-                       input_params: List[float],
-                       attention_params: List[float],
-                       processing_params: List[float],
-                       num_layers: int = 2):
-    """Constructs the full quantum circuit kernel with specified feature map and ansatz.
-    0: BASIC_RY feature map
-    0: RING ansatz
+def kernel_constructor(
+    n_qubits: int,
+    n_class_qubits: int,
+    n_map_qubits: int,
+    FEATURE_MAP: int,
+    ANSATZ: int,
+    input_params: List[float],
+    attention_params: List[float],
+    processing_params: List[float],
+    num_layers: int = 2,
+):
+    """
+    Construct the full quantum circuit kernel with specified feature map and ansatz.
+
+    Conventions:
+      - FEATURE_MAP:
+          0 -> MCQI-style feature map
+      - ANSATZ:
+          0 -> nearest-neighbor ansatz
     """
 
     # Single allocation point
     q = cudaq.qvector(n_qubits)
 
-    # --- feature map ---
-    if FEATURE_MAP == 0:
-        ry_feature_map(q, n_class_qubits, n_map_qubits, input_params)
-        
 
-    # --- ansatz ---
+    if FEATURE_MAP == 0:
+        # MCQI now requires (pos, color, angles, index_q, num_x)
+        mcqi(pos,
+            color,
+            input_params[0], 
+            input_params[1], 
+            input_params[2])
+
     if ANSATZ == 0:
-        ring_ansatz(q, n_class_qubits, n_map_qubits, attention_params, processing_params, num_layers)
+        ansatz(
+            q,
+            n_class_qubits,
+            n_map_qubits,
+            attention_params,
+            processing_params,
+            num_layers,
+        )
