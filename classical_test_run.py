@@ -19,8 +19,7 @@ def main(args):
         print(f"\n=== Trial {trial + 1}/{args.num_of_trials} ===")
         start_time = dt.datetime.now()
 
-        X_train, X_test, X_val, y_train, y_test, y_val = get_data_tensors(args.dataset_path)
-        class_names = ['cat', 'dog']
+        X_train, X_test, X_val, y_train, y_test, y_val, class_names = get_data_tensors(args.dataset_path, args.class_to_keep)
 
         classical_model = ClassicalCNN(
             input_size=X_train.shape[1:],
@@ -106,7 +105,8 @@ def main(args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Classical Neural Network Training Script")
-    parser.add_argument('--dataset_path', type=str, default="dataset/cats_dogs_32x32.npz", help='Path to the dataset file (npz format)')
+    parser.add_argument('--dataset_path', type=str, default="dataset/mnist_8x8.npz", help='Path to the dataset file (npz format)')
+    parser.add_argument('--class_to_keep', type=int, default=[8, 9], help='Classes to keep for binary classification')
     parser.add_argument('--seed', type=int, default=42, help='Random seed for reproducibility')
     parser.add_argument('--epochs', type=int, default=20, help='Number of training epochs')
     parser.add_argument('--batch_size', type=int, default=32, help='Training batch size')

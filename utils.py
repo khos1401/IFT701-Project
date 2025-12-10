@@ -10,7 +10,6 @@ import numpy as np
 import datetime as dt
 from tqdm import tqdm
 
-from dataset.load_dataset import NPZDataLoader
 
 
 def training_loop(dataloader: torch.utils.data.DataLoader,
@@ -71,20 +70,29 @@ def testing_loop(dataloader,
     return test_loss, accuracy
 
 
-def get_data_tensors(file_path):
-    # Creat dataset and dataloader
-    loader = NPZDataLoader(file_path)
-    loader.normalize()
-    X = torch.tensor(loader.X, dtype=torch.float32).permute(0, 3, 1, 2)
-    y = torch.tensor(loader.y, dtype=torch.long)
+def get_data_tensors(file_path: str, class_to_keep : list[int] = None):
+    """
+    Load dataset from .npz file and return train, test, val tensors.
+    If class_to_keep is provided, filter to only those classes for binary classification.
+    """
+    data = np.load(file_path, allow_pickle=True)
+    X = torch.tensor(data["X"], dtype=torch.float32).unsqueeze(1)
+    y = torch.tensor(data["y"], dtype=torch.long)
+    if class_to_keep is not None:
+        mask = torch.isin(y, torch.tensor(class_to_keep))
+        X = X[mask]
+        y = y[mask]
+        y = (y == class_to_keep[1]).long() # Re-map labels to 0 and 1
     X_train, X_test, y_train, y_test = train_test_split(
         X, y, train_size=0.70, random_state=42, stratify=y
     )
     X_val, X_test, y_val, y_test = train_test_split(
         X_test, y_test, train_size=0.50, random_state=42, stratify=y_test
     )
+
+    class_names = data["class_names"][class_to_keep] if class_to_keep is not None else data["class_names"]
     
-    return X_train, X_test, X_val, y_train, y_test, y_val
+    return X_train, X_test, X_val, y_train, y_test, y_val, class_names
 
 
 

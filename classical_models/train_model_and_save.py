@@ -62,7 +62,7 @@ def train_classical_model(
         )
         train_losses.append(train_loss)
         train_accuracies.append(train_acc)
-        print(f"  Train Loss: {train_loss:.4f}, Train Acc: {train_acc:.2f}%")
+        print(f"  Train Loss: {train_loss:.4f}, Train Acc: {train_acc:.2f}")
 
 
         # ---- Validation loop (optional) ----
@@ -75,7 +75,7 @@ def train_classical_model(
         val_losses.append(val_loss)
         val_accuracies.append(val_acc)
         scheduler.step(val_loss)
-        print(f"  Val   Loss: {val_loss:.4f}, Val   Acc: {val_acc:.2f}%")
+        print(f"  Val   Loss: {val_loss:.4f}, Val   Acc: {val_acc:.2f}")
         print(f"  LR: {optimizer.param_groups[0]['lr']:.6f}")
         print("-" * 60)
 
@@ -86,7 +86,7 @@ def train_classical_model(
         device=device
     )
     print("Final Test Performance:")
-    print(f"  Test Loss: {test_loss:.4f}, Test Acc: {test_acc:.2f}%")
+    print(f"  Test Loss: {test_loss:.4f}, Test Acc: {test_acc:.2f}")
 
     history = {
         "train_losses": train_losses,
