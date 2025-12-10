@@ -19,7 +19,6 @@ from quantum_models.qnn.cudaq.circuits import (
 
 import cudaq
 
-
 def setup_cudaq():
     """
     Sets up the CUDA-Q environment for quantum circuit execution.
@@ -28,6 +27,9 @@ def setup_cudaq():
     cudaq.set_target("nvidia")
     backend = "nvidia"
     return backend
+
+
+####################################################################################################################################################
 
 
 class QuantumNeuralNetwork(nn.Module):
@@ -68,57 +70,64 @@ class QuantumNeuralNetwork(nn.Module):
             # Identity: directly return quantum probabilities as outputs
             self.classifier = nn.Identity()
 
-    @staticmethod
-    def mcqi_rgb(image):
-        """
-        Convert an RGB image into MCQI angle encoding:
-            image → [[θ_R, θ_G, θ_B], ...] + FRQI-style index tracking.
-        """
+    @staticmethod # https://arxiv.org/pdf/2404.06889
+    def frqi(image):
 
-        flat = image.reshape(-1, 3)
+        faltten_image = image.flatten()
+        angles=[]
+        for intensity in faltten_image:
+            if intensity == 0:
+                angles.append(0.0)
+            else:
+                theta = np.arcsin(intensity)
+                angles.append(theta)
 
-        if flat.max() > 1.0:
-            flat = flat / 255.0
+        # number of qubits
+        pos_pixel = int(np.log2(len(angles)))
 
-        angles_rgb = []
-        for (r, g, b) in flat:
-            θr = np.arcsin(r) if r != 0 else 0.0
-            θg = np.arcsin(g) if g != 0 else 0.0
-            θb = np.arcsin(b) if b != 0 else 0.0
-            angles_rgb.append([θr, θg, θb])
+        k_value = pos_pixel-1
 
-        pos_pixel = int(np.log2(len(angles_rgb)))
-        k_value = pos_pixel - 1
+        # This function let us know which are the qubits that need to be applied
+        # the X-gate so we can change the state of the pixels positions qubits
+        # to the new state.
 
         def change(state, new_state):
-            n = len(state)
-            c = np.array([])
-            for i in range(n):
+
+            n = len(state)  # n is the length of the binary string
+            c = np.array([])  # create an empty array
+            for i in range(n):  # start to iterate n times
                 if state[i] != new_state[i]:
-                    c = np.append(c, int(i))
-            return c.astype(int) if len(c) > 0 else c
+                    c = np.append(c, int(i))  # if it is different we append the position to the array
 
-        index = []
+            if len(c) > 0:
+                return c.astype(int)
+            else:
+                return c
 
-        for j in range(len(angles_rgb)):
-            state    = format(j - 1, f"0{pos_pixel}b")
-            newstate = format(j, f"0{pos_pixel}b")
+        index=[]
 
-            if j != 0:
-                c = change(state, newstate)
+        for jk in range(len(angles)):
+            state = '{0:0{1}b}'.format(jk-1, pos_pixel)
+            new_state = '{0:0{1}b}'.format(jk, pos_pixel)
+
+            if jk != 0:
+                c = change(state, new_state)
                 if len(c) > 0:
-                    temp = np.abs(c - k_value)
+                    temp = np.abs(c-k_value)
                     index.append(temp)
 
         index_q = []
         num_x = []
 
         for arr in index:
+            count = 0
             arr = arr.tolist()
-            num_x.append(len(arr))
-            index_q.extend(arr)
+            for idx in arr:
+                index_q.append(idx)
+                count += 1
+            num_x.append(count)
 
-        return angles_rgb, index_q, num_x, pos_pixel
+        return angles, index_q, num_x, pos_pixel
     
     @staticmethod
     def extract_bit(
@@ -191,12 +200,8 @@ class QuantumNeuralNetwork(nn.Module):
         n_map_qubits = self.config.n_map_qubits
         num_layers = self.config.num_reps
 
-        # Map enums for CUDA-Q
-        fm_map = {FeatureMapType.BASIC_RY: 0}
-        an_map = {AnsatzType.RING: 0}
-
-        feature_map = fm_map[self.config.feature_map_type]
-        ansatz = an_map[self.config.ansatz_type]
+        feature_map = 0
+        ansatz = 0
 
         # Parameters (torch → python list)
         att = self.attention_params.detach().cpu().tolist()
@@ -208,9 +213,7 @@ class QuantumNeuralNetwork(nn.Module):
 
             image_np = input_batch[i].detach().cpu().numpy()
 
-            angles_rgb, index_q, num_x, pos_pixel = self.mcqi_rgb(image_np)
-
-            flat_angles = [angle for triplet in angles_rgb for angle in triplet]
+            angles, index_q, num_x, pos_pixel = self.frqi(image_np)
 
             counts = cudaq.sample(
                 kernel,
@@ -221,7 +224,7 @@ class QuantumNeuralNetwork(nn.Module):
                 ansatz,
 
                 # feature map
-                flat_angles,      
+                angles,      
                 index_q,         
                 num_x,           
                 pos_pixel,         

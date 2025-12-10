@@ -137,45 +137,25 @@ def y_rot(q:cudaq.qubit, theta:float):
 # MCQRI Feature Map Implementation
 ###############################################################################################################################################
 
-# NOTE: helpers accept a cudaq.qview `q` allocated in the top-level kernel and
-# never allocate qubits themselves. Keep indices within [0, len(q)-1].
-
-
 @cudaq.kernel
-def mcqi(q_pos: int, angles: list[float], index_q: list[int], num_x: list[int]):
-    pos = cudaq.qvector(q_pos)
-    color = cudaq.qvector(3)
+def frqi(q_pos:int, angles:list[float], index_q:list[int], num_x:list[int]):
+    qubits = cudaq.qvector(q_pos)
+    aux = cudaq.qubit()
 
-    h(pos)
-
-    num_pixels = int(len(angles) / 3)
+    h(qubits)
 
     j = 0
-    count = 0 
-
-    for pix in range(num_pixels):
-        theta_r = angles[3 * pix + 0]
-        theta_g = angles[3 * pix + 1]
-        theta_b = angles[3 * pix + 2]
-
+    count = 0
+    for theta in angles:
         if j == 0:
-            cudaq.control(y_rot, pos, color[0], theta_r)
-            cudaq.control(y_rot, pos, color[1], theta_g)
-            cudaq.control(y_rot, pos, color[2], theta_b)
+            cudaq.control(y_rot, qubits, aux, theta)
         else:
-            tot_x = num_x[j - 1]
-            for _ in range(tot_x):
-                x(pos[index_q[count]])
+            tot_x = num_x[j-1]
+            for i in range(tot_x):
+                x(qubits[index_q[count]])
                 count += 1
-
-            cudaq.control(y_rot, pos, color[0], theta_r)
-            cudaq.control(y_rot, pos, color[1], theta_g)
-            cudaq.control(y_rot, pos, color[2], theta_b)
-
+            cudaq.control(y_rot, qubits, aux, theta)
         j += 1
-
-    mz(pos)
-    mz(color)
 
 
 
@@ -249,18 +229,15 @@ def kernel_constructor(
     FEATURE_MAP: int,
     ANSATZ: int,
     input_params: List[float],
+    index_q: List[int],
+    num_x: List[int],
+    pos_pixel: int,
     attention_params: List[float],
     processing_params: List[float],
     num_layers: int = 2,
 ):
     """
     Construct the full quantum circuit kernel with specified feature map and ansatz.
-
-    Conventions:
-      - FEATURE_MAP:
-          0 -> MCQI-style feature map
-      - ANSATZ:
-          0 -> nearest-neighbor ansatz
     """
 
     # Single allocation point
@@ -268,12 +245,12 @@ def kernel_constructor(
 
 
     if FEATURE_MAP == 0:
-        # MCQI now requires (pos, color, angles, index_q, num_x)
-        mcqi(pos,
-            color,
-            input_params[0], 
-            input_params[1], 
-            input_params[2])
+        frqi(
+            pos_pixel,
+            input_params,
+            index_q,
+            num_x,
+         )
 
     if ANSATZ == 0:
         ansatz(
