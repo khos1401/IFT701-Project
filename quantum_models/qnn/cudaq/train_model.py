@@ -29,10 +29,8 @@ def train_quantum_model(model: QuantumNeuralNetwork,
     scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, patience=5, factor=0.5)
     criterion = nn.CrossEntropyLoss()
 
-    feature_map = model.config.feature_map_type.value
     print(f'Training quantum model with:')
     print(f'- Shots: {shots}')
-    print(f'- Feature Map: {feature_map}')
     print(f'- Total Parameters: {sum(p.numel() for p in model.parameters())}')
     
     train_losses = []
