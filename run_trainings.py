@@ -2,16 +2,15 @@ import sys
 import os
 import datetime as dt
 import argparse
-import torch
-import numpy as np
-import re
 
 # Add the parent directory to the Python path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../../../..')))
 
 from utils import get_data_tensors, evaluate_model, save_results, save_training_history, plot_training_history, compute_multiclass_roc, plot_multiclass_roc
-from classical_models.train_model_and_save import train_classical_model
-from classical_models.models import ClassicalNN, ClassicalCNN
+from train_model_and_save import train_model
+from classical_models import ClassicalNN, ClassicalCNN
+from quantum_models import QuantumNN, QuantumCNN
+
 
 def main(args):
     for trial in range(args.num_of_trials):
@@ -20,13 +19,12 @@ def main(args):
 
         X_train, X_test, X_val, y_train, y_test, y_val, class_names = get_data_tensors(args.dataset_path, args.class_to_keep)
 
-        classical_model = ClassicalCNN(
-            input_size=X_train.shape[1:],
-            num_classes=2,
+        classical_model = QuantumCNN(
+            input_size=X_train.shape[1:]
         )
 
         print('Training classical neural network...')
-        history = train_classical_model(
+        history = train_model(
             model=classical_model,
             X_train=X_train,
             y_train=y_train,
@@ -100,16 +98,16 @@ def main(args):
             save_path=os.path.join(trial_save_dir, 'classical_nn_ROC_curves.svg')
         )
 
-        print('Classical neural network trial completed. All results saved.\n')
+        print('Training completed.\n')
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Classical Neural Network Training Script")
     parser.add_argument('--dataset_path', type=str, default="dataset/mnist_8x8.npz", help='Path to the dataset file (npz format)')
     parser.add_argument('--class_to_keep', type=int, default=[8, 9], help='Classes to keep for binary classification')
     parser.add_argument('--seed', type=int, default=42, help='Random seed for reproducibility')
-    parser.add_argument('--epochs', type=int, default=20, help='Number of training epochs')
+    parser.add_argument('--epochs', type=int, default=5, help='Number of training epochs')
     parser.add_argument('--batch_size', type=int, default=32, help='Training batch size')
-    parser.add_argument('--learning_rate', type=float, default=0.001, help='Learning rate for optimizer')
+    parser.add_argument('--learning_rate', type=float, default=0.01, help='Learning rate for optimizer')
     parser.add_argument('--output_dir', type=str, default='results/classical/nn/', help='Directory to save results')
     parser.add_argument('--num_of_trials', type=int, default=1, help='Number of training trials to run')
     

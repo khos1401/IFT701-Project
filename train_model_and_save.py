@@ -1,6 +1,5 @@
 import os
 import sys
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 import torch
 from torch import nn
@@ -11,7 +10,7 @@ from utils import training_loop, testing_loop
 from torch.utils.data import DataLoader, TensorDataset
 from torch import nn, optim
 
-def train_classical_model(
+def train_model(
                     model: nn.Module,
                     X_train: torch.Tensor,
                     y_train: torch.Tensor,
@@ -21,7 +20,7 @@ def train_classical_model(
                     y_test: torch.Tensor,
                     epochs: int = 100,
                     batch_size: int = 32,
-                    learning_rate: float = 1e-3,
+                    learning_rate: float = 5e-3,
                     device: torch.device = None,
     ):
     model.to(device)
@@ -65,7 +64,6 @@ def train_classical_model(
         print(f"  Train Loss: {train_loss:.4f}, Train Acc: {train_acc:.2f}")
 
 
-        # ---- Validation loop (optional) ----
         val_loss, val_acc = testing_loop(
             dataloader=val_loader,
             model=model,
