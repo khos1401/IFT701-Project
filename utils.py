@@ -90,7 +90,7 @@ def get_data_tensors(file_path: str, class_to_keep : list[int] = None):
         X_test, y_test, train_size=0.50, random_state=42, stratify=y_test
     )
 
-    class_names = data["class_names"][class_to_keep] if class_to_keep is not None else data["class_names"]
+    class_names = data["classes"][class_to_keep] if class_to_keep is not None else data["class_names"]
     
     return X_train, X_test, X_val, y_train, y_test, y_val, class_names
 
