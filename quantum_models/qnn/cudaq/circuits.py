@@ -6,54 +6,31 @@ from enum import Enum
 
 
 class FeatureMapType(Enum):
-    """ Types of feature maps available. """
-    BASIC_RY = 'basic_ry'
-    BASIC_RX = 'basic_rx'
-    BASIC_RZ = 'basic_rz'
-    BASIC_CRZ = 'basic_crz'
-    BASIC_CRY = 'basic_cry'
-    BASIC_CRX = 'basic_crx'
-    CCRY = 'ccry'
-    ZZ = 'zz'
-    RY_RX = 'ry_rx'
-    RY_RZ = 'ry_rz'
-    U3 = 'u3'
-
+    FRQI = 'frqi'
 
 class AnsatzType(Enum):
-    """ Types of ansatz available. """
-    RING = 'ring'
-    ALL_TO_ALL = 'all_to_all'
-    FARHI = 'farhi'
-    CENTRIC = 'centric'
-    TREE_TENSOR = 'tree_tensor'
-    MERA = 'mera'
+    ANSATZ = 'ansatz'
 
 
 class QuantumCircuitConfig:
-    """
-    Configuration for the quantum circuit.
-    """
     def __init__(
-            self,
-            num_features,
-            n_class_qubits: int,
-            num_reps: int = 2,
-            feature_map_type: FeatureMapType = FeatureMapType.BASIC_RY,
-            ansatz_type: AnsatzType = AnsatzType.RING,
-            attention_params: int = 225,
-            processing_params: int = 55,
-            ):
-        self.num_features = num_features
+        self,
+        n_qubits: int,
+        num_reps: int = 2,
+        feature_map_type: FeatureMapType = FeatureMapType.FRQI,
+        ansatz_type: AnsatzType = AnsatzType.ANSATZ,
+        num_attention_params: int = 225,
+    ):
+        self.n_qubits = n_qubits
+        self.num_reps = num_reps
+
         self.feature_map_type = feature_map_type
         self.ansatz_type = ansatz_type
-        self.n_map_qubits = num_features
-        self.n_class_qubits = n_class_qubits
-        self.num_qubits = self.n_class_qubits + self.n_map_qubits
-        self.num_reps = num_reps
-        self.attention_params = attention_params
-        self.processing_params = processing_params
-        self.total_params = (self.attention_params + self.processing_params) * self.num_reps
+
+        self.num_attention_params = num_attention_params
+
+        self.total_params = num_attention_params * num_reps
+
 
 
 
@@ -138,23 +115,27 @@ def y_rot(q:cudaq.qubit, theta:float):
 ###############################################################################################################################################
 
 @cudaq.kernel
-def frqi(q_pos:int, angles:list[float], index_q:list[int], num_x:list[int]):
-    qubits = cudaq.qvector(q_pos)
-    aux = cudaq.qubit()
-
-    h(qubits)
+def frqi(
+    q: cudaq.qview, 
+    aux: cudaq.qubit,
+    angles: List[float], 
+    index_q: List[int], 
+    num_x: List[int]
+):
+    
+    h(q)   # Hadamard on all position qubits
 
     j = 0
     count = 0
     for theta in angles:
         if j == 0:
-            cudaq.control(y_rot, qubits, aux, theta)
+            cudaq.control(y_rot, q, aux, theta)
         else:
-            tot_x = num_x[j-1]
-            for i in range(tot_x):
-                x(qubits[index_q[count]])
+            flips = num_x[j-1]
+            for _ in range(flips):
+                x(q[index_q[count]])
                 count += 1
-            cudaq.control(y_rot, qubits, aux, theta)
+            cudaq.control(y_rot, q, aux, theta)
         j += 1
 
 
@@ -163,59 +144,37 @@ def frqi(q_pos:int, angles:list[float], index_q:list[int], num_x:list[int]):
 # Ansatz Implementations (NO qvector allocation here)
 ###############################################################################################################################################
 
-from typing import List
-import cudaq
 
 @cudaq.kernel
 def ansatz(
     q: cudaq.qview,
-    n_class_qubits: int,
-    n_map_qubits: int,
-    attention_params: List[float],
-    processing_params: List[float],
-    num_layers: int = 2,
+    aux: cudaq.qubit,
+    params: list[float],   # All params flattened: (2*(n+1))*num_layers
+    num_layers: int
 ):
-    """
-    Nearest-neighbor ansatz using RY and controlled gates.
-    """
+    n = len(q)
+    p = 0  # param index
 
-    total_qubits = n_class_qubits + n_map_qubits
+    for _ in range(num_layers):
 
-    a = 0
-    map_start = n_class_qubits
-    map_end   = n_class_qubits + n_map_qubits
+        # RY + RZ on each data qubit
+        for i in range(n):
+            ry(params[p], q[i]); p += 1
+            rz(params[p], q[i]); p += 1
 
-    for k in range(map_start, map_end):
-        if a < len(attention_params):
-            ry(attention_params[a], q[k])
-            a += 1
+        # RY + RZ on aux
+        ry(params[p], aux); p += 1
+        rz(params[p], aux); p += 1
 
-    if n_map_qubits >= 2:
-        for k in range(map_start, map_end - 1):
-            if a < len(attention_params):
-                cry(attention_params[a], q[k], q[k + 1])
-                a += 1
+        # q[0] → q[1] → ... → q[n-1]
+        for i in range(n - 1):
+            x.ctrl(q[i], q[i + 1])
 
-    p = 0
-    L = num_layers if num_layers > 0 else 1
+        # q[n-1] → aux
+        x.ctrl(q[n - 1], aux)
 
-    class_start = 0
-    class_end   = n_class_qubits
-
-    for _ in range(L):
-
-        for idx in range(total_qubits):
-            if p < len(processing_params):
-                ry(processing_params[p], q[idx])
-                p += 1
-
-        if n_class_qubits >= 2:
-            for c in range(class_start, class_end - 1):
-                x.ctrl(q[c], q[c + 1])
-
-        if n_map_qubits >= 2:
-            for k in range(map_start, map_end - 1):
-                x.ctrl(q[k], q[k + 1])
+        # aux → q[0] (close the ring)
+        x.ctrl(aux, q[0])
 
 
 ###############################################################################################################################################
@@ -224,40 +183,30 @@ def ansatz(
 @cudaq.kernel
 def kernel_constructor(
     n_qubits: int,
-    n_class_qubits: int,
-    n_map_qubits: int,
     FEATURE_MAP: int,
     ANSATZ: int,
     input_params: List[float],
     index_q: List[int],
     num_x: List[int],
-    pos_pixel: int,
     attention_params: List[float],
-    processing_params: List[float],
     num_layers: int = 2,
 ):
-    """
-    Construct the full quantum circuit kernel with specified feature map and ansatz.
-    """
-
-    # Single allocation point
     q = cudaq.qvector(n_qubits)
-
+    aux = cudaq.qubit()
 
     if FEATURE_MAP == 0:
         frqi(
-            pos_pixel,
+            q,
+            aux,
             input_params,
             index_q,
             num_x,
-         )
+        )
 
     if ANSATZ == 0:
         ansatz(
             q,
-            n_class_qubits,
-            n_map_qubits,
+            aux,
             attention_params,
-            processing_params,
             num_layers,
         )

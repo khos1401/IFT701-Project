@@ -12,8 +12,6 @@ import torch.nn as nn
 
 from quantum_models.qnn.cudaq.circuits import (
     QuantumCircuitConfig,
-    FeatureMapType,
-    AnsatzType,
     kernel_constructor,
 )
 
@@ -53,10 +51,7 @@ class QuantumNeuralNetwork(nn.Module):
 
         # Learnable quantum circuit parameters
         self.attention_params = nn.Parameter(
-            0.1 * torch.randn(config.attention_params)
-        )
-        self.processing_params = nn.Parameter(
-            0.1 * torch.randn(config.processing_params)
+            0.1 * torch.randn(config.num_attention_params)
         )
 
         # Optional classical head on top of quantum probabilities
@@ -128,55 +123,26 @@ class QuantumNeuralNetwork(nn.Module):
             num_x.append(count)
 
         return angles, index_q, num_x, pos_pixel
-    
+        
     @staticmethod
-    def extract_bit(
-        bitstring: str,
-        qubit_indices,
-        lsb_right: bool = True,
-    ) -> str:
-        """
-        Extracts a new bitstring containing only the bits at the specified qubit indices.
-        """
-        n = len(bitstring)
-        bits = []
-        for q in sorted(qubit_indices):  # ensure consistent order
-            pos = (n - 1 - q) if lsb_right else q
-            bits.append(bitstring[pos])
-        return "".join(bits)
-    
-    def counts_to_half_split_binary(
-        self,
-        counts: dict,
-        n_qubits: int,
-    ) -> torch.Tensor:
-        """
-        Map full-register measurement counts into a binary distribution
-        by splitting the 2^n computational basis states into two halves.
-        """
-        num_classes = 2
-        buckets = [0, 0]
+    def counts_to_class_probs(counts: dict, total_qubits: int) -> torch.Tensor:
+        p0 = 0
+        p1 = 0
         total = 0
 
-        half = 1 << (n_qubits - 1)   # 2^{n-1}
-
         for bitstring, c in counts.items():
-            idx = int(bitstring, 2)
-
-            if idx < half:
-                cls = 0
+            # Right-most bit (aux) is the classifier bit
+            cls_bit = bitstring[-1]
+            if cls_bit == '0':
+                p0 += c
             else:
-                cls = 1
-
-            buckets[cls] += c
+                p1 += c
             total += c
 
         if total == 0:
-            return torch.zeros(num_classes, dtype=torch.float32)
+            return torch.tensor([0.5, 0.5], dtype=torch.float32)
 
-        p0 = buckets[0] / total
-        p1 = buckets[1] / total
-        return torch.tensor([p0, p1], dtype=torch.float32)
+        return torch.tensor([p0/total, p1/total], dtype=torch.float32)
 
 
     def quantum_forward(
@@ -185,7 +151,7 @@ class QuantumNeuralNetwork(nn.Module):
         shots: int = 1024,
     ) -> torch.Tensor:
         """
-        Runs the quantum circuit for each RGB image in the batch 
+        Runs the quantum circuit for each image in the batch 
         and returns quantum output probabilities for binary classification.
         """
 
@@ -195,9 +161,8 @@ class QuantumNeuralNetwork(nn.Module):
         kernel = kernel_constructor
 
         # Model config
-        n_qubits = self.config.num_qubits
-        n_class_qubits = self.config.n_class_qubits
-        n_map_qubits = self.config.n_map_qubits
+        n_qubits = self.config.n_qubits
+        n_qubit_total = self.config.n_qubits + 1  # +1 for auxiliary qubit
         num_layers = self.config.num_reps
 
         feature_map = 0
@@ -205,7 +170,6 @@ class QuantumNeuralNetwork(nn.Module):
 
         # Parameters (torch → python list)
         att = self.attention_params.detach().cpu().tolist()
-        proc = self.processing_params.detach().cpu().tolist()
 
         quantum_outputs = []
 
@@ -215,30 +179,24 @@ class QuantumNeuralNetwork(nn.Module):
 
             angles, index_q, num_x, pos_pixel = self.frqi(image_np)
 
+            n_qubit_total = pos_pixel + 1  # +1 for auxiliary qubit
+
             counts = cudaq.sample(
                 kernel,
-                n_qubits,
-                n_class_qubits,
-                n_map_qubits,
+                pos_pixel,
                 feature_map,
                 ansatz,
-
-                # feature map
                 angles,      
                 index_q,         
-                num_x,           
-                pos_pixel,         
-
-                # ansatz
+                num_x,                 
                 att,
-                proc,
                 num_layers,
                 shots_count=shots,
             )
 
-            probs = self.counts_to_half_split_binary(
+            probs = self.counts_to_class_probs(
                 counts=counts,
-                n_qubits=n_qubits,
+                total_qubits=n_qubit_total,
             ).to(device)
 
             quantum_outputs.append(probs)
