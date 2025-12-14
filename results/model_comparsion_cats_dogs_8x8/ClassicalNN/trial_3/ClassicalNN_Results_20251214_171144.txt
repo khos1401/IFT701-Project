@@ -1,0 +1,25 @@
+Model Path: results/model_comparsion_cats_dogs_8x8\ClassicalNN\trial_3
+Dataset: .\dataset\cats_dogs_16x16.npz
+Accuracy: 60.67%
+Classification Report:
+              precision    recall  f1-score   support
+
+        cats       0.63      0.51      0.57       150
+        dogs       0.59      0.70      0.64       150
+
+    accuracy                           0.61       300
+   macro avg       0.61      0.61      0.60       300
+weighted avg       0.61      0.61      0.60       300
+
+Confusion Matrix:
+[[ 77  73]
+ [ 45 105]]
+
+Additional Information:
+Timestamp: 20251214_171144
+training_duration: 0:00:02.111412
+epochs: 15
+batch_size: 32
+learning_rate: 0.01
+seed: 44
+model_info: {'model_type': 'ClassicalNN', 'input_size': torch.Size([1, 16, 16, 3]), 'hidden_dims': [516, 256], 'num_classes': 2, 'dropout': 0.1, 'total_parameters': 529670, 'trainable_parameters': 529670, 'architecture': 'ClassicalNN(\n  (flatten): Flatten(start_dim=1, end_dim=-1)\n  (classifier): Sequential(\n    (0): Linear(in_features=768, out_features=516, bias=True)\n    (1): ReLU()\n    (2): Dropout(p=0.1, inplace=False)\n    (3): Linear(in_features=516, out_features=256, bias=True)\n    (4): ReLU()\n    (5): Dropout(p=0.1, inplace=False)\n    (6): Linear(in_features=256, out_features=2, bias=True)\n  )\n)'}

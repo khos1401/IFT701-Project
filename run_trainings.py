@@ -216,7 +216,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser("Neural Network Experiment Runner")
 
     parser.add_argument("--dataset_path", type=str, default="dataset/mnist_8x8.npz")
-    parser.add_argument("--class_to_keep", type=int, nargs="+", default=[8, 9])
+    parser.add_argument("--class_to_keep", type=int, nargs="+", default=[0, 1])
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--epochs", type=int, default=5)
     parser.add_argument("--batch_size", type=int, default=32)
