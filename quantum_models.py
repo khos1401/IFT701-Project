@@ -5,7 +5,6 @@ import torch.nn as nn
 import numpy as np
 
 
-
 class QuantumNN(nn.Module):
     def __init__(self,
         input_size: list[int]

@@ -6,24 +6,6 @@ class ClassicalCNN(nn.Module):
     """
     ClassicalCNN is a PyTorch module implementing a configurable feedforward neural network (FNN)
     for image classification.
-
-    Args:
-        input_size (int): Number of input features AFTER flattening.
-                          For images: input_size = C * H.
-        num_classes (int): Number of output classes.
-        hidden_dims (list of int, optional): Sizes of hidden layers. Default: [256, 128].
-        dropout (float, optional): Dropout rate applied after each hidden layer. Default: 0.3.
-
-    Example (16x16 grayscale cats vs dogs):
-        >>> model = ClassicalNN(input_size=[1, 16, 16], num_classes=2)
-        >>> x = torch.randn(32, 1, 16, 16)   # batch of 32 images (1,16,16)
-        >>> out = model(x)
-        >>> print(out.shape)  # torch.Size([32, 2])
-
-    Example (32x32 RGB):
-        >>> model = ClassicalCNN(input_size=[3, 32, 32], num_classes=2)
-        >>> x = torch.randn(32, 3, 32, 32)
-        >>> out = model(x)
     """
 
     def __init__(self,
@@ -78,24 +60,6 @@ class ClassicalNN(nn.Module):
     """
     ClassicalNN is a PyTorch module implementing a configurable feedforward neural network (FNN)
     for image classification (or general flattened inputs).
-
-    Args:
-        input_size (int): Number of input features AFTER flattening.
-                          For images: input_size = C * H * W (or H * W for grayscale).
-        num_classes (int): Number of output classes.
-        hidden_dims (list of int, optional): Sizes of hidden layers. Default: [256, 128].
-        dropout (float, optional): Dropout rate applied after each hidden layer. Default: 0.3.
-
-    Example (16x16 grayscale cats vs dogs):
-        >>> model = ClassicalNN(input_size=16*16, num_classes=2)
-        >>> x = torch.randn(32, 1, 16, 16)   # batch of 32 images (1,16,16)
-        >>> out = model(x)
-        >>> print(out.shape)  # torch.Size([32, 2])
-
-    Example (32x32 RGB):
-        >>> model = ClassicalNN(input_size=3*32*32, num_classes=2)
-        >>> x = torch.randn(32, 3, 32, 32)
-        >>> out = model(x)
     """
 
     def __init__(self,
@@ -152,16 +116,8 @@ class ClassicalNN(nn.Module):
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """
         Forward pass of the network.
-
-        x can be:
-          - [batch, C, H, W]  (images)
-          - [batch, H, W]
-          - [batch, input_size] (already flattened)
-
-        Returns:
-            torch.Tensor: Class probabilities of shape [batch, num_classes].
         """
-        x = self.flatten(x)          # -> [batch, input_size]
+        x = self.flatten(x)
         logits = self.classifier(x)
         return logits
 
