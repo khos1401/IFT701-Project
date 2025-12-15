@@ -115,7 +115,7 @@ def main(args):
                     + 10 * class_b
                     + trial
                 )
-                set_seed(seed)
+                set_seed(int(seed))
 
                 print(f"  Trial {trial + 1}/{args.num_of_trials} | Seed {seed}")
 

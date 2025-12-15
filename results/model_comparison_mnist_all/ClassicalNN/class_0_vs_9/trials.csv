@@ -1,0 +1,2 @@
+model,class_a,class_b,trial,seed,accuracy,precision,recall,f1score,duration_seconds
+ClassicalNN,0,9,1,132,0.9766666666666667,0.976857409630519,0.9766666666666667,0.9766643330999767,1.360716
