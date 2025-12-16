@@ -1,0 +1,6 @@
+model,trial,seed,accuracy,precision,recall,f1score,duration_seconds
+ClassicalNN,1,42,1.0,1.0,1.0,1.0,3.811173
+ClassicalNN,2,43,1.0,1.0,1.0,1.0,1.381525
+ClassicalNN,3,44,1.0,1.0,1.0,1.0,1.358268
+ClassicalNN,4,45,1.0,1.0,1.0,1.0,1.396244
+ClassicalNN,5,46,1.0,1.0,1.0,1.0,1.318715

@@ -20,13 +20,13 @@ from utils import (
 )
 
 from train_model_and_save import train_model
-from classical_models import ClassicalNN
-from quantum_models import QuantumNN
+from classical_models import ClassicalCNN
+from quantum_models import QuantumCNN
 
 
 MODEL_REGISTRY = {
-    "ClassicalNN": ClassicalNN,
-    "QuantumNN": QuantumNN,
+    "ClassicalCNN": ClassicalCNN,
+    "QuantumCNN": QuantumCNN,
 }
 
 
