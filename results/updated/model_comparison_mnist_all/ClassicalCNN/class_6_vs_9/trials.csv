@@ -1,0 +1,2 @@
+model,class_a,class_b,trial,seed,accuracy,precision,recall,f1score,duration_seconds
+ClassicalCNN,6,9,1,732,1.0,1.0,1.0,1.0,2.065849

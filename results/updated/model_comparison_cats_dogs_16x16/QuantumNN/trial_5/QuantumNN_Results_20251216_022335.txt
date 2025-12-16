@@ -1,0 +1,25 @@
+Model Path: results/updated/model_comparison_cats_dogs_16x16\QuantumNN\trial_5
+Dataset: .\dataset\cats_dogs_16x16.npz
+Accuracy: 57.00%
+Classification Report:
+              precision    recall  f1-score   support
+
+        cats       0.60      0.43      0.50       150
+        dogs       0.55      0.71      0.62       150
+
+    accuracy                           0.57       300
+   macro avg       0.58      0.57      0.56       300
+weighted avg       0.58      0.57      0.56       300
+
+Confusion Matrix:
+[[ 65  85]
+ [ 44 106]]
+
+Additional Information:
+Timestamp: 20251216_022335
+training_duration: 0:00:52.270430
+epochs: 15
+batch_size: 32
+learning_rate: 0.01
+seed: 2046
+model_info: {'model_type': 'QuantumNN', 'input_size': torch.Size([1, 16, 16]), 'hidden_dims': 4, 'num_classes': 2, 'dropout': 0, 'total_parameters': 114, 'trainable_parameters': 96, 'architecture': 'QuantumNN(\n  (q_layer): <Quantum Torch Layer: func=quantum_circuit>\n  (c_layer): Linear(in_features=8, out_features=2, bias=True)\n)'}

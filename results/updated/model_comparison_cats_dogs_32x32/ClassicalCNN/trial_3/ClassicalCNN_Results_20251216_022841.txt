@@ -1,0 +1,25 @@
+Model Path: results/updated/model_comparison_cats_dogs_32x32\ClassicalCNN\trial_3
+Dataset: .\dataset\cats_dogs_32x32.npz
+Accuracy: 52.67%
+Classification Report:
+              precision    recall  f1-score   support
+
+        cats       0.90      0.06      0.11       150
+        dogs       0.51      0.99      0.68       150
+
+    accuracy                           0.53       300
+   macro avg       0.71      0.53      0.39       300
+weighted avg       0.71      0.53      0.39       300
+
+Confusion Matrix:
+[[  9 141]
+ [  1 149]]
+
+Additional Information:
+Timestamp: 20251216_022841
+training_duration: 0:00:03.081522
+epochs: 10
+batch_size: 32
+learning_rate: 0.01
+seed: 1044
+model_info: {'model_type': 'ClassicalCNN', 'input_size': torch.Size([1, 32, 32]), 'hidden_dims': None, 'num_classes': 2, 'dropout': Dropout(p=0.1, inplace=False), 'total_parameters': 267330, 'trainable_parameters': 267330, 'architecture': 'ClassicalCNN(\n  (conv1): Conv2d(1, 16, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))\n  (pool): MaxPool2d(kernel_size=2, stride=2, padding=0, dilation=1, ceil_mode=False)\n  (conv2): Conv2d(16, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))\n  (flatten): Flatten(start_dim=1, end_dim=-1)\n  (fc1): Linear(in_features=2048, out_features=128, bias=True)\n  (fc2): Linear(in_features=128, out_features=2, bias=True)\n  (relu): ReLU()\n  (dropout): Dropout(p=0.1, inplace=False)\n)'}

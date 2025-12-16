@@ -1,0 +1,2 @@
+model,class_a,class_b,trial,seed,accuracy,precision,recall,f1score,duration_seconds
+QuantumCNN,3,9,1,1432,0.9533333333333334,0.9534139402560455,0.9533333333333334,0.9533312591670741,33.33479

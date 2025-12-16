@@ -1,0 +1,20 @@
+{
+    "num_trials": 1,
+    "accuracy": [
+        0.89
+    ],
+    "precision": [
+        0.897796817625459
+    ],
+    "recall": [
+        0.89
+    ],
+    "f1score": [
+        0.8894583458948849
+    ],
+    "accuracy_mean": 0.89,
+    "accuracy_std": 0.0,
+    "precision_mean": 0.897796817625459,
+    "recall_mean": 0.89,
+    "f1score_mean": 0.8894583458948849
+}
