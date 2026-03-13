@@ -1,0 +1,14 @@
+model,trial,seed,accuracy,precision,recall,f1score,duration_seconds
+ClassicalNN,1,42,1.0,1.0,1.0,1.0,3.163636
+ClassicalNN,2,43,1.0,1.0,1.0,1.0,1.388942
+ClassicalNN,3,44,1.0,1.0,1.0,1.0,1.408358
+ClassicalNN,4,45,1.0,1.0,1.0,1.0,1.504041
+ClassicalNN,5,46,1.0,1.0,1.0,1.0,1.471267
+ClassicalNN,1,42,1.0,1.0,1.0,1.0,3.858475
+ClassicalNN,2,43,1.0,1.0,1.0,1.0,2.397445
+ClassicalNN,3,44,1.0,1.0,1.0,1.0,2.488598
+ClassicalNN,4,45,1.0,1.0,1.0,1.0,2.588598
+ClassicalNN,5,46,1.0,1.0,1.0,1.0,2.743854
+ClassicalNN,1,42,1.0,1.0,1.0,1.0,2.897164
+ClassicalNN,2,43,1.0,1.0,1.0,1.0,1.580482
+ClassicalNN,3,44,1.0,1.0,1.0,1.0,1.533834

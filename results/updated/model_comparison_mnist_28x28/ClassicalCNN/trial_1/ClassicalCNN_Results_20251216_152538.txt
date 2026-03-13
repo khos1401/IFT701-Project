@@ -1,0 +1,25 @@
+Model Path: results/updated/model_comparison_mnist_28x28\ClassicalCNN\trial_1
+Dataset: .\dataset\mnist_28x28.npz
+Accuracy: 100.00%
+Classification Report:
+              precision    recall  f1-score   support
+
+           0       1.00      1.00      1.00       150
+           1       1.00      1.00      1.00       150
+
+    accuracy                           1.00       300
+   macro avg       1.00      1.00      1.00       300
+weighted avg       1.00      1.00      1.00       300
+
+Confusion Matrix:
+[[150   0]
+ [  0 150]]
+
+Additional Information:
+Timestamp: 20251216_152538
+training_duration: 0:00:02.559019
+epochs: 10
+batch_size: 32
+learning_rate: 0.01
+seed: 1042
+model_info: {'model_type': 'ClassicalCNN', 'input_size': torch.Size([1, 28, 28]), 'hidden_dims': None, 'num_classes': 2, 'dropout': Dropout(p=0.1, inplace=False), 'total_parameters': 205890, 'trainable_parameters': 205890, 'architecture': 'ClassicalCNN(\n  (conv1): Conv2d(1, 16, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))\n  (pool): MaxPool2d(kernel_size=2, stride=2, padding=0, dilation=1, ceil_mode=False)\n  (conv2): Conv2d(16, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))\n  (flatten): Flatten(start_dim=1, end_dim=-1)\n  (fc1): Linear(in_features=1568, out_features=128, bias=True)\n  (fc2): Linear(in_features=128, out_features=2, bias=True)\n  (relu): ReLU()\n  (dropout): Dropout(p=0.1, inplace=False)\n)'}

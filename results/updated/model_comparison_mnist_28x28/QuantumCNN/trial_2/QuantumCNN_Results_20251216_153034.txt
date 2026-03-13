@@ -1,0 +1,25 @@
+Model Path: results/updated/model_comparison_mnist_28x28\QuantumCNN\trial_2
+Dataset: .\dataset\mnist_28x28.npz
+Accuracy: 98.67%
+Classification Report:
+              precision    recall  f1-score   support
+
+           0       0.99      0.99      0.99       150
+           1       0.99      0.99      0.99       150
+
+    accuracy                           0.99       300
+   macro avg       0.99      0.99      0.99       300
+weighted avg       0.99      0.99      0.99       300
+
+Confusion Matrix:
+[[148   2]
+ [  2 148]]
+
+Additional Information:
+Timestamp: 20251216_153034
+training_duration: 0:00:55.954705
+epochs: 10
+batch_size: 32
+learning_rate: 0.01
+seed: 3043
+model_info: {'model_type': 'QuantumNN', 'input_size': torch.Size([1, 28, 28]), 'hidden_dims': 4, 'num_classes': 2, 'dropout': 0, 'total_parameters': 177, 'trainable_parameters': 177, 'architecture': 'QuantumCNN(\n  (q_layer): <Quantum Torch Layer: func=quantum_circuit>\n)'}

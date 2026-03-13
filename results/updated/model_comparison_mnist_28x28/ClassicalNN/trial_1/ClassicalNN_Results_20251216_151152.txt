@@ -1,0 +1,25 @@
+Model Path: results/updated/model_comparison_mnist_28x28\ClassicalNN\trial_1
+Dataset: dataset/mnist_8x8.npz
+Accuracy: 100.00%
+Classification Report:
+              precision    recall  f1-score   support
+
+           0       1.00      1.00      1.00       150
+           1       1.00      1.00      1.00       150
+
+    accuracy                           1.00       300
+   macro avg       1.00      1.00      1.00       300
+weighted avg       1.00      1.00      1.00       300
+
+Confusion Matrix:
+[[150   0]
+ [  0 150]]
+
+Additional Information:
+Timestamp: 20251216_151152
+training_duration: 0:00:03.163636
+epochs: 15
+batch_size: 32
+learning_rate: 0.01
+seed: 42
+model_info: {'model_type': 'ClassicalNN', 'input_size': torch.Size([1, 8, 8]), 'hidden_dims': [516, 256], 'num_classes': 2, 'dropout': 0.1, 'total_parameters': 166406, 'trainable_parameters': 166406, 'architecture': 'ClassicalNN(\n  (flatten): Flatten(start_dim=1, end_dim=-1)\n  (classifier): Sequential(\n    (0): Linear(in_features=64, out_features=516, bias=True)\n    (1): ReLU()\n    (2): Dropout(p=0.1, inplace=False)\n    (3): Linear(in_features=516, out_features=256, bias=True)\n    (4): ReLU()\n    (5): Dropout(p=0.1, inplace=False)\n    (6): Linear(in_features=256, out_features=2, bias=True)\n  )\n)'}
